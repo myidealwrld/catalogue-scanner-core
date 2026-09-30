@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "catalogue-scanner-core"
-version = "0.1.0"
-description = "Offline normalization of ecommerce product records"
+version = "0.2.0"
+description = "Read-only ecommerce catalogue discovery and product normalization"
 requires-python = ">=3.10"
 license = { text = "Apache-2.0" }
 dependencies = []
@@ -15,6 +15,7 @@ test = []
 
 [project.scripts]
 catalogue-normalize = "catalogue_scanner_core.cli:main"
+catalogue-scan = "catalogue_scanner_core.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
