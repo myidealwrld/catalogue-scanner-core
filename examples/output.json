@@ -1,0 +1,38 @@
+[
+  {
+    "schema_version": "1.0",
+    "source_platform": "example-store",
+    "product_id": "sample-001",
+    "title": "Sample cotton shirt",
+    "brand": "Example brand",
+    "url": "https://shop.example.test/products/sample-shirt",
+    "sku": "SAMPLE-001",
+    "variants": [
+      {
+        "id": "sample-001-s",
+        "title": "Small",
+        "sku": "SAMPLE-001-S",
+        "price": "24.00",
+        "available": true
+      }
+    ],
+    "price": {
+      "price": "24.00",
+      "priceCurrency": "USD"
+    },
+    "images": [
+      "https://shop.example.test/images/sample-shirt.jpg"
+    ],
+    "availability": "InStock",
+    "materials": [
+      "100% cotton"
+    ],
+    "ingredients": [],
+    "sourcing_evidence": [
+      "Supplier disclosure supplied in the sample record."
+    ],
+    "evidence_urls": [
+      "https://shop.example.test/products/sample-shirt"
+    ]
+  }
+]

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/catalogue-scanner-core/product.schema.json",
+  "title": "Normalized catalogue product",
+  "type": "object",
+  "required": ["schema_version", "title", "url", "variants", "images", "evidence_urls"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "source_platform": { "type": ["string", "null"] },
+    "product_id": { "type": ["string", "null"] },
+    "title": { "type": "string" },
+    "brand": { "type": ["string", "null"] },
+    "url": { "type": "string", "format": "uri" },
+    "sku": { "type": ["string", "null"] },
+    "variants": { "type": "array", "items": { "type": "object" } },
+    "price": { "type": ["object", "null"] },
+    "images": { "type": "array", "items": { "type": "string", "format": "uri" } },
+    "availability": { "type": ["string", "null"] },
+    "materials": { "type": "array", "items": { "type": "string" } },
+    "ingredients": { "type": "array", "items": { "type": "string" } },
+    "sourcing_evidence": { "type": "array", "items": { "type": "string" } },
+    "evidence_urls": { "type": "array", "items": { "type": "string", "format": "uri" } }
+  },
+  "additionalProperties": true
+}
