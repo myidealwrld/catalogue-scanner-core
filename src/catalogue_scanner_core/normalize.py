@@ -1,4 +1,4 @@
-"""Map already-discovered commerce records into the public product schema."""
+"""Map discovered commerce records into the public product schema."""
 
 from __future__ import annotations
 
@@ -53,8 +53,33 @@ def _variant(value: Any) -> dict[str, Any] | None:
     }
 
 
+def _brand(value: Any) -> str | None:
+    if isinstance(value, Mapping):
+        value = _first(value, "name", "title")
+    return _text(value)
+
+
+def _price(value: Any, source: Mapping[str, Any]) -> dict[str, Any] | None:
+    if value is None:
+        return None
+    if isinstance(value, list):
+        value = value[0] if value else None
+    if isinstance(value, Mapping):
+        aliases = {
+            "price": "price",
+            "lowPrice": "lowPrice",
+            "highPrice": "highPrice",
+            "priceCurrency": "priceCurrency",
+            "currency": "currency",
+            "currency_code": "priceCurrency",
+        }
+        result = {out: value[key] for key, out in aliases.items() if key in value and value[key] is not None}
+        return result or None
+    return {"price": value, "currency": _text(source.get("currency"))}
+
+
 def normalize_record(record: Mapping[str, Any]) -> dict[str, Any]:
-    """Normalize common product field aliases without network access or scoring."""
+    """Normalize common Shopify, WooCommerce, and JSON-LD product aliases."""
     nested = record.get("product")
     source = nested if isinstance(nested, Mapping) else record
     raw_url = _first(source, "url", "product_url", "permalink", "link")
@@ -72,6 +97,7 @@ def normalize_record(record: Mapping[str, Any]) -> dict[str, Any]:
         if key == ("", "", "", "") or key not in variant_keys:
             variants.append(variant)
             variant_keys.add(key)
+
     image_values = _list(_first(source, "images", "image"))
     images = []
     for item in image_values:
@@ -79,12 +105,6 @@ def normalize_record(record: Mapping[str, Any]) -> dict[str, Any]:
         normalized = _url(candidate, url)
         if normalized and normalized not in images:
             images.append(normalized)
-
-    price = _first(source, "price", "offers")
-    if isinstance(price, Mapping):
-        price = {key: price[key] for key in ("price", "lowPrice", "highPrice", "priceCurrency", "currency") if key in price}
-    elif price is not None:
-        price = {"price": price, "currency": _text(source.get("currency"))}
 
     def texts(*keys: str) -> list[str]:
         values = []
@@ -103,18 +123,25 @@ def normalize_record(record: Mapping[str, Any]) -> dict[str, Any]:
     if url not in evidence_urls:
         evidence_urls.insert(0, url)
 
+    offers = source.get("offers")
+    availability = _first(source, "availability", "stock_status")
+    if not availability and isinstance(offers, Mapping):
+        availability = offers.get("availability")
+    if availability is None and "is_in_stock" in source:
+        availability = "InStock" if source.get("is_in_stock") else "OutOfStock"
+
     return {
         "schema_version": "1.0",
         "source_platform": _text(_first(source, "source_platform", "platform")),
         "product_id": _text(_first(source, "product_id", "id")),
         "title": _text(_first(source, "title", "name")) or "",
-        "brand": _text(_first(source, "brand", "brand_name")),
+        "brand": _brand(_first(source, "brand", "brand_name", "vendor")),
         "url": url,
         "sku": _text(_first(source, "sku", "product_code")),
         "variants": variants,
-        "price": price,
+        "price": _price(_first(source, "price", "offers", "prices"), source),
         "images": images,
-        "availability": _text(_first(source, "availability", "stock_status")),
+        "availability": _text(availability),
         "materials": texts("materials", "material", "composition"),
         "ingredients": texts("ingredients", "ingredient_list"),
         "sourcing_evidence": texts("sourcing_evidence", "disclosures", "evidence"),
