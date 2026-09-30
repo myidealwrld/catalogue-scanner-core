@@ -25,6 +25,18 @@ class NormalizeRecordTests(unittest.TestCase):
         self.assertEqual(len(result["variants"]), 1)
         self.assertEqual(result["evidence_urls"], ["https://shop.example.test/products/shirt"])
 
+    def test_jsonld_brand_offer_and_availability(self):
+        result = normalize_record({
+            "@type": "Product",
+            "name": "Tea",
+            "url": "https://example.test/products/tea",
+            "brand": {"@type": "Brand", "name": "Example Tea"},
+            "offers": {"price": "9.50", "priceCurrency": "USD", "availability": "https://schema.org/InStock"},
+        })
+        self.assertEqual(result["brand"], "Example Tea")
+        self.assertEqual(result["price"]["price"], "9.50")
+        self.assertEqual(result["availability"], "https://schema.org/InStock")
+
     def test_rejects_non_http_product_urls(self):
         with self.assertRaises(ValueError):
             normalize_record({"title": "No URL", "url": "javascript:alert(1)"})
